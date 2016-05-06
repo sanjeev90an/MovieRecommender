@@ -1,0 +1,41 @@
+
+.card {
+    background:#FFF;
+    border:1px solid #AAA;
+    border-bottom:5px solid #BBB;
+    padding:0px;
+    margin:0 auto;
+    margin-bottom: 15px;
+    width:400px;
+    overflow:hidden;
+    text-align:center;
+}
+
+.card h1 {
+    margin:0px;
+    padding:10px;
+    padding-bottom:0px;
+}
+
+.card p {
+    margin:0px;
+    padding:10px;
+}
+
+.smallcard{
+	background:#FFF;
+    border:1px solid #AAA;
+    border-bottom:0px;
+    padding:0px;
+    margin-bottom: 4px;
+    width:400px;
+    overflow:hidden;
+	
+}
+
+#rightColumn,
+#leftColumn {
+    display:inline-block;
+    width:49%;
+    vertical-align:top;
+}
