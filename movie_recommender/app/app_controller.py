@@ -27,6 +27,12 @@ class AppController:
     
     def get_all_old_ratings(self, movie_id):
         return self.db_manager.get_all_rows('rating_info', 'movie_id=\'' + movie_id + '\'', 10)
+    
+    def add_user(self, user_id, name, gender, uid):
+        existing_user = self.db_manager.get_row('user_info', uid, 'uid')
+        if not existing_user:
+            row = (uid, user_id, name, gender, get_current_time_str())
+            self.db_manager.insert_batch('user_info', TABLES['user_info'], [row])
 
 app_controller = AppController()
 def get_app_controller():

@@ -48,6 +48,15 @@ def get_all_old_ratings():
     all_old_ratings = app_controller.get_all_old_ratings(movie_id)  # 2471
     return json.dumps(all_old_ratings), 200, {'ContentType':'application/json'}
 
+@app.route('/addUser', methods=['POST'])
+def add_user():
+    user_id = request.form['userId'].encode('utf-8')
+    name = request.form['name'].encode('utf-8')
+    gender = request.form['gender'].encode('utf-8')
+    uid = request.form['uid'].encode('utf-8')
+    app_controller.add_user(user_id, name, gender, uid)
+    return ok_response()
+
 @app.route('/')
 def show_home_page():
     return render_template('index.html')

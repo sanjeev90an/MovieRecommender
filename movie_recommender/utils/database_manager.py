@@ -52,16 +52,17 @@ class DatabaseManager:
     
     """
     """
-    def get_row(self, table_name, uid):
-        query = "Select * from {} where id = {}".format(table_name, uid)
+    def get_row(self, table_name, uid, uid_column_name='id'):
+        query = "Select * from {} where {} = {}".format(table_name, uid_column_name, uid)
         connection = self.connection_pool.getconn()
         cursor = connection.cursor()
         cursor.execute(query)
         column_names = [desc[0] for desc in cursor.description]
         values = cursor.fetchall()
         result = {}
-        for x, y in itertools.izip(column_names, values[0]):
-            result[x] = y
+        if len(values) > 0:
+            for x, y in itertools.izip(column_names, values[0]):
+                result[x] = y
         self.connection_pool.putconn(connection)
         return result
     

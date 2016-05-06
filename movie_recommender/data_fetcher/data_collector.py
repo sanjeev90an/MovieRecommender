@@ -15,7 +15,8 @@ from movie_recommender.utils.date_utils import millis_to_str
 TABLES = {'movie_info':('movie_id', 'title', 'genres', 'imdb_id', 'tmdb_id'),
           'rating_info':('user_id', 'movie_id', 'rating', 'date_added'),
           'tag_info':('user_id', 'movie_id', 'tag', 'date_added'),
-          'visitor_review_history':('user_id', 'movie_id', 'action_type', 'rating', 'date_added')
+          'visitor_review_history':('user_id', 'movie_id', 'action_type', 'rating', 'date_added'),
+          'user_info':('uid', 'user_id', 'name', 'gender','date_added')
           }
 
 class MovieDataFetcher:

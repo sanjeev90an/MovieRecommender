@@ -16,8 +16,11 @@
 		function statusChangeCallback(response) {
 			if (response.status === 'connected') {
 				// Logged into your app and Facebook.
-				FB.api('/me', function(response) {
+				FB.api('/me', 'get', {
+					fields : 'id,name,gender,email'
+				}, function(response){
 					console.log(response);
+					handleUserLogin(response);
 				});
 			} else {
 				// The person is not logged into Facebook, so we're not sure if
@@ -32,7 +35,7 @@
 				statusChangeCallback(response);
 			});
 		}
-		
+
 		window.fbAsyncInit = function() {
 			FB.init({
 				appId : '121574618250077',
@@ -40,11 +43,7 @@
 				version : 'v2.5'
 			});
 			FB.getLoginStatus(function(response) {
-				if (response.status === 'connected') {
-					console.log('Logged in.');
-				} else {
-					FB.login();
-				}
+				statusChangeCallback(response)
 			});
 		};
 
@@ -79,6 +78,7 @@
 			<fb:login-button scope="public_profile,email"
 				onlogin="checkLoginState();">
 			</fb:login-button>
+			<div id="status"></div>
 		</div>
 		<div id=leftColumn>
 			<div id=oldRatings class=card>

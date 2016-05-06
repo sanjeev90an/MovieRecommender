@@ -36,6 +36,14 @@ rating integer,
 date_added timestamp
 );
 
+create table user_info(
+uid bigint unique,
+user_id varchar,
+name varchar, 
+gender varchar,
+date_added timestamp
+);
+
 create index movie_info_movie_id on movie_info(movie_id);
 create index rating_info_movie_id on rating_info(movie_id);
 create index rating_info_user_id on rating_info(user_id);

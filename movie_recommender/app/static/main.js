@@ -1,4 +1,5 @@
 var currentMovieInfo;
+var loggedInUserInfo;
 
 function getData() {
 	$('#submitButton').on('click', submitRating)
@@ -7,18 +8,49 @@ function getData() {
 	getNextMovie();
 }
 
-function submitRating(event) {
-	url = "saveMovieRating";
+function getUserId() {
+	// check if user is logged in
+	if (loggedInUserInfo) {
+		return loggedInUserInfo['email'];
+	} else {
+		return 'anon';
+	}
+}
+
+function submitRating() {
 	rating = $("input[name=rating]:checked").val();
 	successHandler = function(response) {
 		getNextMovie();
 	}
+	saveUserAction("saveMovieRating", currentMovieInfo['movie_id'], rating,
+			'review', successHandler);
+}
+
+function skipMovie() {
+	successHandler = function(response) {
+		getNextMovie();
+	}
+	saveUserAction("skipMovie", currentMovieInfo['movie_id'], -1, "skip",
+			successHandler);
+}
+function checkoutMovie() {
+	successHandler = function(response) {
+		getNextMovie();
+	}
+	saveUserAction("checkoutMovie", currentMovieInfo['movie_id'], -1,
+			"checkout", successHandler);
+}
+
+function saveUserAction(url, movieId, rating, actionType, successHandler) {
 	userId = getUserId();
+	if (userId == 'anon') {
+		saveMovieReviewInCookie(movieId, rating, actionType);
+	}
 	$.ajax({
 		url : url,
 		type : "POST",
 		data : {
-			movieId : currentMovieInfo['movie_id'],
+			movieId : movieId,
 			userId : userId,
 			rating : rating
 		},
@@ -27,36 +59,9 @@ function submitRating(event) {
 	})
 }
 
-function getUserId() {
-	// check if user is logged in
-	return 'anon';
-}
-
-function skipMovie(event) {
-	saveUserAction("skipMovie");
-}
-function checkoutMovie(event) {
-	saveUserAction("checkoutMovie");
-}
-
-function saveUserAction(url) {
-	successHandler = function(response) {
-		getNextMovie();
-	}
-	userId = getUserId();
-	$.ajax({
-		url : url,
-		type : "POST",
-		data : {
-			movieId : currentMovieInfo['movie_id'],
-			userId : userId,
-		},
-		success : successHandler,
-		error : emptyHandler
-	})
-}
-
 emptyHandler = function() {
+}
+emptySuccessHandler = function(response) {
 }
 
 function getNextMovie() {
@@ -152,4 +157,73 @@ function renderVisitorRatings(visitorRatings) {
 		$("#visitorRatings").append(
 				"<div class=smallcard> No ratings yet</div>");
 	}
+}
+
+function handleUserLogin(userInfo) {
+	loggedInUserInfo = userInfo;
+	document.getElementById('status').innerHTML = 'Logged in as '
+			+ userInfo['name'];
+	addUserIfNotPresent(userInfo);
+	allReviews = getReviewedMoviesFromCookie();
+	for ( var key in allReviews) {
+		var review = allReviews[key];
+		var rating = review['rating'];
+		var movieId = review['movieId'];
+		switch (allReviews[key]['actionType']) {
+		case 'skip':
+			saveUserAction("skipMovie", movieId, rating, 'skip',
+					emptySuccessHandler);
+		case 'checkout':
+			saveUserAction("checkoutMovie", movieId, rating, 'checkout',
+					emptySuccessHandler);
+		case 'review':
+			saveUserAction("saveMovieRating", movieId, rating, 'review',
+					emptySuccessHandler);
+		}
+	}
+	document.cookie = 'reviewedMovies=[]';
+	console.log(allReviews);
+}
+
+function addUserIfNotPresent(userInfo) {
+	url = "addUser"
+	$.ajax({
+		url : url,
+		type : "POST",
+		data : {
+			userId : userInfo['email'],
+			name : userInfo['name'],
+			gender : userInfo['gender'],
+			uid : userInfo['id']
+		},
+		success : emptySuccessHandler,
+		error : emptyHandler
+	})
+}
+
+function getReviewedMoviesFromCookie() {
+	var cookies = document.cookie.split(';');
+	var reviews;
+	for (key in cookies) {
+		if (cookies[key].trim().indexOf('reviewedMovies') == 0) {
+			reviews = cookies[key].split('=')[1]
+			break;
+		}
+	}
+	if (reviews) {
+		return JSON.parse(reviews);
+	} else {
+		return [];
+	}
+}
+
+function saveMovieReviewInCookie(movieId, rating, actionType) {
+	reviews = getReviewedMoviesFromCookie();
+	data = {
+		'movieId' : movieId,
+		'rating' : rating,
+		'actionType' : actionType
+	}
+	reviews.push(data);
+	document.cookie = 'reviewedMovies=' + JSON.stringify(reviews);
 }
