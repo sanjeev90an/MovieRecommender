@@ -38,10 +38,12 @@ date_added timestamp
 
 create table user_info(
 uid bigint unique,
+user_type varchar,
 user_id varchar,
 name varchar, 
 gender varchar,
-date_added timestamp
+date_added timestamp,
+unique(uid, user_type)
 );
 
 create index movie_info_movie_id on movie_info(movie_id);

@@ -129,7 +129,7 @@ class MovieDataFetcher:
     
 if __name__ == '__main__':
     movie_data_fetcher = MovieDataFetcher("/media/sanjeev/Work/ml-latest")
-    movie_data_fetcher.insert_movie_info()
-    movie_data_fetcher.filter_data()
+#     movie_data_fetcher.insert_movie_info()
+#     movie_data_fetcher.filter_data()
     movie_data_fetcher.insert_rating_info()
     movie_data_fetcher.insert_tag_info()

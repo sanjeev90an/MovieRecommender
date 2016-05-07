@@ -4,6 +4,7 @@ from random import randint
 from movie_recommender.data_fetcher.data_collector import TABLES
 from movie_recommender.utils.database_manager import get_db_manager
 from movie_recommender.utils.date_utils import get_current_time_str
+from movie_recommender.ml.recommender_model import get_recommender
 
 
 class AppController:
@@ -11,6 +12,7 @@ class AppController:
     def __init__(self):
         self.db_manager = get_db_manager()
         self.all_movie_uids = self.db_manager.get_all_values_for_attr('movie_info', 'id')
+        self.recommender = get_recommender()
         
     def get_next_movie(self):
         movie_uid = self.all_movie_uids[randint(0, len(self.all_movie_uids) - 1)]
@@ -34,6 +36,10 @@ class AppController:
             row = (uid, user_id, name, gender, get_current_time_str())
             self.db_manager.insert_batch('user_info', TABLES['user_info'], [row])
 
+    def get_recommendations(self, user_id):
+        recommended_ratings = self.recommender.get_recommended_ratings(user_id);
+        
+        
 app_controller = AppController()
 def get_app_controller():
     return app_controller

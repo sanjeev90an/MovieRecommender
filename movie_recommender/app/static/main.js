@@ -227,3 +227,36 @@ function saveMovieReviewInCookie(movieId, rating, actionType) {
 	reviews.push(data);
 	document.cookie = 'reviewedMovies=' + JSON.stringify(reviews);
 }
+
+function getRecommendations() {
+	var userId = getUserId();
+	var successHandler = successHandler = function(response) {
+		renderRecommendations(JSON.parse(response));
+	}
+	if (userId != 'anon') {
+		$.ajax({
+			url : url,
+			type : "GET",
+			data : {
+				userId : userId,
+			},
+			success : successHandler,
+			error : emptyHandler
+		})
+	}
+}
+
+function renderRecommendations(recommendedMovies) {
+	$("#recommendations").html("");
+	$("#recommendations").append("<h1>Recommendations</h1>")
+	if (recommendedMovies.length > 0) {
+		for ( var key in recommendedMovies) {
+			$("#recommendations").append(
+					"<div class=smallcard>" + recommendedMovies[key]['title']
+							+ "</div>")
+		}
+	} else {
+		$("#recommendations").append(
+				"<div class=smallcard>No recommendations yet</div>");
+	}
+}
