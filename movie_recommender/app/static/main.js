@@ -71,6 +71,7 @@ function getNextMovie() {
 		renderMovieInfo(response);
 		getOldRatings(response);
 		getVisitorRatings(response);
+		getRecommendations();
 	}
 	failureHandler = emptyHandler
 	$.ajax({
@@ -83,6 +84,7 @@ function getNextMovie() {
 
 function renderMovieInfo(movieData) {
 	$("#movieDetails").html(movieData['title'])
+	$("#movieGenre").html(movieData['genres'])
 }
 
 function getOldRatings(movieData) {
@@ -183,6 +185,9 @@ function handleUserLogin(userInfo) {
 	}
 	document.cookie = 'reviewedMovies=[]';
 	console.log(allReviews);
+	getRecommendations(); // if user login event is received after execution
+	// of loadData, the recommendations will not be
+	// fetched.
 }
 
 function addUserIfNotPresent(userInfo) {
@@ -229,7 +234,9 @@ function saveMovieReviewInCookie(movieId, rating, actionType) {
 }
 
 function getRecommendations() {
+	console.log("Going to fetch recommendations")
 	var userId = getUserId();
+	var url = "getRecommendations"
 	var successHandler = successHandler = function(response) {
 		renderRecommendations(JSON.parse(response));
 	}

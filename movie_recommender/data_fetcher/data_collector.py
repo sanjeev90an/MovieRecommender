@@ -16,7 +16,7 @@ TABLES = {'movie_info':('movie_id', 'title', 'genres', 'imdb_id', 'tmdb_id'),
           'rating_info':('user_id', 'movie_id', 'rating', 'date_added'),
           'tag_info':('user_id', 'movie_id', 'tag', 'date_added'),
           'visitor_review_history':('user_id', 'movie_id', 'action_type', 'rating', 'date_added'),
-          'user_info':('uid', 'user_id', 'name', 'gender','date_added')
+          'user_info':('uid', 'user_id', 'name', 'gender', 'date_added')
           }
 
 class MovieDataFetcher:
@@ -49,7 +49,7 @@ class MovieDataFetcher:
             movie_id = movie_row[0]
             if int(movie_id) not in self.all_movie_ids:
                 row_batch.append(((movie_id, movie_row[1].replace("'", ""), movie_row[2], links_row[1], links_row[2] or '0')))
-                self.all_movie_ids.add(movie_id)
+                self.all_movie_ids.add(int(movie_id))
                 if len(row_batch) + 1 > self.BATCH_SIZE:
                     self.db_manager.insert_batch("movie_info", TABLES['movie_info'], row_batch)
                     row_batch = []
@@ -80,9 +80,10 @@ class MovieDataFetcher:
         for tag_row in tag_file_reader:
             movie_id = tag_row[1]
             if int(movie_id) in self.all_movie_ids:
-                row_batch.append((tag_row[0], movie_id, tag_row[2], millis_to_str(tag_row[3])))
+                row_batch.append((tag_row[0], movie_id, tag_row[2].replace("'", ""), millis_to_str(tag_row[3])))
                 if len(row_batch) + 1 > self.BATCH_SIZE:
                     self.db_manager.insert_batch("tag_info", TABLES['tag_info'], row_batch)
+                    row_batch = []
         self.db_manager.insert_batch("tag_info", TABLES['tag_info'], row_batch)
         self.logger.info("Finished inserting tags")
         
@@ -128,8 +129,8 @@ class MovieDataFetcher:
             return -1;
     
 if __name__ == '__main__':
-    movie_data_fetcher = MovieDataFetcher("/media/sanjeev/Work/ml-latest")
+    movie_data_fetcher = MovieDataFetcher("/home/sanjeev/Downloads/ml-latest-small")
 #     movie_data_fetcher.insert_movie_info()
 #     movie_data_fetcher.filter_data()
-    movie_data_fetcher.insert_rating_info()
+#     movie_data_fetcher.insert_rating_info()
     movie_data_fetcher.insert_tag_info()

@@ -1,4 +1,3 @@
-from flask import app
 from flask.app import Flask
 from flask.globals import request
 from flask.json import jsonify
@@ -8,7 +7,7 @@ import json
 from movie_recommender.app.app_controller import get_app_controller
 
 
-application = Flask(__name__)
+app = Flask(__name__)
 app_controller = get_app_controller()
 
 @app.route('/getNextMovie', methods=['GET'])
@@ -62,7 +61,8 @@ def add_user():
 @app.route('/getRecommendations', methods=['GET'])
 def get_recommendations():
     user_id = request.args.get('userId').encode('utf-8')
-    app_controller.get_recommendations(user_id)
+    recommended_movies = app_controller.get_recommendations(user_id)
+    return json.dumps(recommended_movies), 200, {'ContentType':'application/json'}
 
 @app.route('/')
 def show_home_page():
@@ -76,4 +76,4 @@ def ok_response():
     return json.dumps({'success':True}), 200, {'ContentType':'application/json'}
 
 if __name__ == '__main__':
-    application.run("127.0.0.1", 9090, debug=True)
+    app.run("127.0.0.1", 9090, debug=True)

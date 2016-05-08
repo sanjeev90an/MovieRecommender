@@ -76,7 +76,7 @@ class DatabaseManager:
         self.connection_pool.putconn(connection)
         return uids
     
-    def get_all_rows(self, table_name, where_clause, limit=20):
+    def get_all_rows(self, table_name, where_clause='1=1', limit=20):
         query = "Select * from {} where {} limit {}".format(table_name, where_clause, limit)
         connection = self.connection_pool.getconn()
         cursor = connection.cursor()
@@ -104,7 +104,7 @@ class DatabaseManager:
     def release_connection(self, connection):
         self.connection_pool.putconn(connection)
 
-db_manager = DatabaseManager(db_name="movie_recommender")
+db_manager = DatabaseManager(db_name="movie_recommender2")
 """
 Returns the db manger object. Everyone should access the same db manager object.
 """    

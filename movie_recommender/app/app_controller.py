@@ -25,7 +25,7 @@ class AppController:
         self.db_manager.insert_batch('visitor_review_history', column_headers, [row])
 
     def get_all_visitor_ratings(self, movie_id):
-        return self.db_manager.get_all_rows('visitor_review_history', 'movie_id=\'' + movie_id + '\'', 10)
+        return self.db_manager.get_all_rows(table_name='visitor_review_history', limit=20)
     
     def get_all_old_ratings(self, movie_id):
         return self.db_manager.get_all_rows('rating_info', 'movie_id=\'' + movie_id + '\'', 10)
@@ -37,7 +37,11 @@ class AppController:
             self.db_manager.insert_batch('user_info', TABLES['user_info'], [row])
 
     def get_recommendations(self, user_id):
-        recommended_ratings = self.recommender.get_recommended_ratings(user_id);
+        recommended_ratings = self.recommender.get_recommended_ratings_for_visitor(user_id);
+        recommended_ratings.sort(key=lambda x:x[1])
+        recommended_ratings = recommended_ratings[:10]
+        recommended_movie_ids = [row[0] for row in recommended_ratings]
+        return self.db_manager.get_all_rows('movie_info', 'movie_id in {}'.format(tuple(recommended_movie_ids)))
         
         
 app_controller = AppController()

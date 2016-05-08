@@ -1,5 +1,5 @@
-from movie_recommender.app.app import application
+from movie_recommender.app.app import app
 
 
 if __name__ == "__main__":
-    application.run()
+    app.run()
