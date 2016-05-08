@@ -9,6 +9,10 @@ from movie_recommender.utils.time_utils import time_it
 
 
 class Recommender:
+    """
+    This class builds the recommender by factorizing the data_matrix of user vs movies. It also provide methods
+    for fetching movie recommendations for a user.
+    """
     
     DATA_MATRIX_FILE = "../../resources/data_matrix_1"
     
@@ -58,6 +62,9 @@ class Recommender:
         test_user_ids = user_ids[training_data_size:]
         return training_user_ids, test_user_ids
         
+    """
+    Builds data matrix from file.
+    """
     def build_data_matrix(self):
         file_reader = csv.reader(open(self.DATA_MATRIX_FILE, "rb"), delimiter=',')
         columns = next(file_reader)
@@ -66,6 +73,9 @@ class Recommender:
         data = map(float, data)
         self.data_matrix = sparse.csr_matrix((data, (rows, columns)), shape=(len(self.training_user_ids), len(self.movie_ids)))
             
+    """
+    Performs SVD decompostion of the data matrix. 
+    """
     @time_it
     def factorize_data_matrix(self):
         self.logger.info("Going to factorize matrix")
@@ -73,6 +83,9 @@ class Recommender:
         svd.fit(self.data_matrix)
         self.H = svd.components_
     
+    """
+    It returns the predicted value of ratings for a user.
+    """
     @time_it
     def get_recommended_ratings_for_visitor(self, user_id):
         rating_vector = [0] * len(self.movie_ids)

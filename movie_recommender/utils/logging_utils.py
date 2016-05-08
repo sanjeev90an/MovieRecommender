@@ -1,6 +1,9 @@
 import logging
 import sys
 
+"""
+	Initialization of system logger. 
+"""
 
 logger = logging.getLogger()
 handler = logging.StreamHandler(sys.stdout)

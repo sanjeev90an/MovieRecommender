@@ -6,8 +6,11 @@ from movie_recommender.utils.database_manager import get_db_manager
 from movie_recommender.utils.date_utils import get_current_time_str
 from movie_recommender.ml.recommender_model import get_recommender
 
-
 class AppController:
+    """
+        This class acts as interface to REST APIs. The business logic of various apis is implemented in this 
+        class.
+    """
     
     def __init__(self):
         self.db_manager = get_db_manager()

@@ -1,6 +1,9 @@
-var currentMovieInfo;
-var loggedInUserInfo;
+// This contains functions which are used for calling server APIs and taking actions on user actions.
 
+var currentMovieInfo; /* Details about the movie being displayed on the page. */
+var loggedInUserInfo; /* Details about the logged user, null otherwise. */
+
+/* Called on page load to fetch movie info, ratings and recommendations. */
 function getData() {
 	$('#submitButton').on('click', submitRating)
 	$('#checkButton').on('click', checkoutMovie)
@@ -8,8 +11,8 @@ function getData() {
 	getNextMovie();
 }
 
+// check if user is logged in
 function getUserId() {
-	// check if user is logged in
 	if (loggedInUserInfo) {
 		return loggedInUserInfo['email'];
 	} else {
@@ -17,6 +20,7 @@ function getUserId() {
 	}
 }
 
+/* Called when a user submits rating for a movie on website. */
 function submitRating() {
 	rating = $("input[name=rating]:checked").val();
 	successHandler = function(response) {
@@ -26,6 +30,7 @@ function submitRating() {
 			'review', successHandler);
 }
 
+/* Called when user click on Skip movie. */
 function skipMovie() {
 	successHandler = function(response) {
 		getNextMovie();
@@ -33,6 +38,8 @@ function skipMovie() {
 	saveUserAction("skipMovie", currentMovieInfo['movie_id'], -1, "skip",
 			successHandler);
 }
+
+/* Called when user clicks on checkout movie. */
 function checkoutMovie() {
 	successHandler = function(response) {
 		getNextMovie();
@@ -41,6 +48,10 @@ function checkoutMovie() {
 			"checkout", successHandler);
 }
 
+/*
+ * Save the user action in db by calling an API and also saving the action in
+ * cookie if user is not logged in.
+ */
 function saveUserAction(url, movieId, rating, actionType, successHandler) {
 	userId = getUserId();
 	if (userId == 'anon') {
@@ -64,6 +75,7 @@ emptyHandler = function() {
 emptySuccessHandler = function(response) {
 }
 
+/* Fetches next random movie title from server. */
 function getNextMovie() {
 	url = "getNextMovie"
 	successHandler = function(response) {
@@ -82,11 +94,13 @@ function getNextMovie() {
 	})
 }
 
+/* Updates ui components with fetched movie data. */
 function renderMovieInfo(movieData) {
 	$("#movieDetails").html(movieData['title'])
 	$("#movieGenre").html(movieData['genres'])
 }
 
+/* Fetches ratings from MovieLens dataset by calling API. */
 function getOldRatings(movieData) {
 	movieId = movieData['movie_id'];
 	url = "getAllOldRatings"
@@ -105,6 +119,7 @@ function getOldRatings(movieData) {
 	})
 }
 
+/* Renders the old ratings on page. */
 function renderOldRatings(oldRatings) {
 	$("#oldRatings").html("");
 	$("#oldRatings").append("<h1>Old ratings</h1>");
@@ -120,6 +135,7 @@ function renderOldRatings(oldRatings) {
 	}
 }
 
+/* Fetches the actions taken by website visitors from server. */
 function getVisitorRatings(movieData) {
 	movieId = movieData['movie_id'];
 	url = "getAllVisitorRatings"
@@ -138,6 +154,7 @@ function getVisitorRatings(movieData) {
 	})
 }
 
+/* Renders visitor ratings on page. */
 function renderVisitorRatings(visitorRatings) {
 	$("#visitorRatings").html("");
 	$("#visitorRatings").append("<h1>Visitor Ratings</h1>")
@@ -161,6 +178,12 @@ function renderVisitorRatings(visitorRatings) {
 	}
 }
 
+/*
+ * Called when a user logs in using facebook or a logged in user visits the page
+ * again. A new user is created on server if the user logs in for first time.
+ * All reviewed, skipped movies of the user are fetched from cookies and saved
+ * on the server. Cookies are flushed after saving on server.
+ */
 function handleUserLogin(userInfo) {
 	loggedInUserInfo = userInfo;
 	document.getElementById('status').innerHTML = 'Logged in as '
@@ -190,6 +213,7 @@ function handleUserLogin(userInfo) {
 	// fetched.
 }
 
+/* Adds a user on server by calling the api. */
 function addUserIfNotPresent(userInfo) {
 	url = "addUser"
 	$.ajax({
@@ -206,6 +230,7 @@ function addUserIfNotPresent(userInfo) {
 	})
 }
 
+/* Returns the movies reviewed by anonymous user which are saved in the cookies. */
 function getReviewedMoviesFromCookie() {
 	var cookies = document.cookie.split(';');
 	var reviews;
@@ -222,6 +247,10 @@ function getReviewedMoviesFromCookie() {
 	}
 }
 
+/*
+ * Saves a new skipped, reviewed, checkedout movie in the cookies if user is not
+ * logged in.
+ */
 function saveMovieReviewInCookie(movieId, rating, actionType) {
 	reviews = getReviewedMoviesFromCookie();
 	data = {
@@ -233,6 +262,7 @@ function saveMovieReviewInCookie(movieId, rating, actionType) {
 	document.cookie = 'reviewedMovies=' + JSON.stringify(reviews);
 }
 
+/* Fetches recommended movies for a user from server. */
 function getRecommendations() {
 	console.log("Going to fetch recommendations")
 	var userId = getUserId();
@@ -252,7 +282,7 @@ function getRecommendations() {
 		})
 	}
 }
-
+/* Updates the movie recommendations on the page. */
 function renderRecommendations(recommendedMovies) {
 	$("#recommendations").html("");
 	$("#recommendations").append("<h1>Recommendations</h1>")

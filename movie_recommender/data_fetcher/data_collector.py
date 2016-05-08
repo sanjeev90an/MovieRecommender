@@ -20,6 +20,9 @@ TABLES = {'movie_info':('movie_id', 'title', 'genres', 'imdb_id', 'tmdb_id'),
           }
 
 class MovieDataFetcher:
+    """
+    This class reads, filters and dumps the movie data to db.
+    """
     
     MOVIE_API_URL = "http://api.myapifilms.com/imdb/idIMDB"
     API_TOKEN = "49f60ab4-8b98-47b4-86b0-73eb48ddc441"
@@ -40,6 +43,9 @@ class MovieDataFetcher:
         return file_reader
 
 
+    """
+    Reads movie and movie link data from files and saves to movie_info table.
+    """
     def insert_movie_info(self):
         movie_file_reader = self.__get_csv_file_reader(self.movie_data_dir, "movies.csv")
         links_file_reader = self.__get_csv_file_reader(self.movie_data_dir, "links.csv")
@@ -58,6 +64,9 @@ class MovieDataFetcher:
         self.logger.info("Finished inserting movie info.")
 
 
+    """
+    Reads ratings data from file and dumps to rating_info table. 
+    """
     def insert_rating_info(self):
         row_batch = []
         ratings_file_reader = self.__get_csv_file_reader(self.movie_data_dir, "ratings.csv")
@@ -73,6 +82,9 @@ class MovieDataFetcher:
         self.db_manager.insert_batch("rating_info", TABLES['rating_info'], row_batch)
         self.logger.info("Finished inserting ratings")
 
+    """
+    Reads tags data from file and dumps to tag_info table. 
+    """
     def insert_tag_info(self):
         row_batch = []
         self.logger.info("Going to insert tags to tag_info table")
@@ -87,6 +99,12 @@ class MovieDataFetcher:
         self.db_manager.insert_batch("tag_info", TABLES['tag_info'], row_batch)
         self.logger.info("Finished inserting tags")
         
+    """
+    Filters the movie data by removing movies released before 2000. The release date is inferred by 
+    two methods
+    1. Parsed from the title.
+    2. Fetched by calling myiapifilms API
+    """
     @time_it
     def filter_data(self):
         connection = self.db_manager.get_connection()
@@ -103,7 +121,7 @@ class MovieDataFetcher:
                 self.logger
             except ValueError:
                 self.logger.error("Failed to find year in movie_title for title:{}, imdb_id:{}".format(movie_title, imdb_id))
-                year = self.find_year_from_api(movie_title, imdb_id);
+                year = self.__find_year_from_api(movie_title, imdb_id);
             if year < 2000:
                 movie_ids_to_remove.append(movie_id)
         ids_to_remove = tuple(map(int, movie_ids_to_remove))
@@ -114,7 +132,10 @@ class MovieDataFetcher:
         self.all_movie_ids = self.all_movie_ids - set(movie_ids_to_remove)
         self.logger.info("Total movies older than 2000 : {}, new movies:{}".format(len(ids_to_remove), len(self.all_movie_ids)))
     
-    def find_year_from_api(self, movie_title, imdb_id):
+    """
+    Calls myapifilms api and gets the release year for a movie.
+    """
+    def __find_year_from_api(self, movie_title, imdb_id):
         params = {'title':movie_title, 'token':self.API_TOKEN}
         data = urllib.urlencode(params)
         time.sleep(1)

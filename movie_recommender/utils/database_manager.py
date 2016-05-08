@@ -38,6 +38,7 @@ class DatabaseManager:
         self.__execute_query(query)
 
     """
+    Updates a row(uid) with new values from column_vs_value dict.
     """
     def update(self, table_name, column_vs_value, uid):
         update_str = ''.join('{}={},'.format(key, val) for key, val in column_vs_value.items())[:-1]
@@ -45,12 +46,14 @@ class DatabaseManager:
         self.__execute_query(query)
     
     """
+    Deletes all rows from table_name with uids.
     """
     def delete_batch(self, table_name , uids):
         query = "DELETE from {} WHERE id in {}".format(table_name, str(uids))
         self.__execute_query(query)
     
     """
+    Returns the dict a row by uid.
     """
     def get_row(self, table_name, uid, uid_column_name='id'):
         query = "Select * from {} where {} = {}".format(table_name, uid_column_name, uid)
@@ -66,6 +69,9 @@ class DatabaseManager:
         self.connection_pool.putconn(connection)
         return result
     
+    """
+    Returns all distinct values of column_name from table_name.
+    """
     def get_all_values_for_attr(self, table_name, column_name):
         query = "Select distinct {} from {}".format(column_name, table_name)
         connection = self.connection_pool.getconn()
@@ -76,6 +82,10 @@ class DatabaseManager:
         self.connection_pool.putconn(connection)
         return uids
     
+    """
+    Returns all rows from table_name satisfying where_clause. The number of returned rows are limited to 
+    limit.
+    """
     def get_all_rows(self, table_name, where_clause='1=1', limit=20):
         query = "Select * from {} where {} limit {}".format(table_name, where_clause, limit)
         connection = self.connection_pool.getconn()
