@@ -23,11 +23,13 @@ function getUserId() {
 /* Called when a user submits rating for a movie on website. */
 function submitRating() {
 	rating = $("input[name=rating]:checked").val();
-	successHandler = function(response) {
-		getNextMovie();
+	if (rating) {
+		successHandler = function(response) {
+			getNextMovie();
+		}
+		saveUserAction("saveMovieRating", currentMovieInfo['movie_id'], rating,
+				'review', successHandler);
 	}
-	saveUserAction("saveMovieRating", currentMovieInfo['movie_id'], rating,
-			'review', successHandler);
 }
 
 /* Called when user click on Skip movie. */
