@@ -6,9 +6,10 @@ from sklearn.decomposition.truncated_svd import TruncatedSVD
 from movie_recommender.utils.database_manager import get_db_manager
 from movie_recommender.utils.logging_utils import get_logger
 from movie_recommender.utils.time_utils import time_it
+from movie_recommender.ml.recommender import AbstractRecommender
 
 
-class Recommender:
+class Recommender(AbstractRecommender):
     """
     This class builds the recommender by factorizing the data_matrix of user vs movies. It also provide methods
     for fetching movie recommendations for a user.
@@ -74,7 +75,7 @@ class Recommender:
         self.data_matrix = sparse.csr_matrix((data, (rows, columns)), shape=(len(self.training_user_ids), len(self.movie_ids)))
             
     """
-    Performs SVD decompostion of the data matrix. 
+    Performs SVD decompostion of the data matrix . 
     """
     @time_it
     def factorize_data_matrix(self):
@@ -117,8 +118,8 @@ def get_recommender():
 
 if __name__ == '__main__':
     recommender = Recommender()
-    recommender.get_recommended_ratings_for_visitor('sanjeev90an@gmail.com')
-#     recommender.read_data_matrix()
+    recommender.read_data_matrix()
+    recommender.factorize_data_matrix()
+#     recommender.get_recommended_ratings_for_visitor('sanjeev90an@gmail.com')
 #     recommender.build_data_matrix()
-#     recommender.factorize_data_matrix()
     

@@ -1,47 +1,63 @@
 create database movie_recommender;
 \c movie_recommender
 create table movie_info (
-id BIGSERIAL PRIMARY KEY,
-movie_id integer unique, 
-title varchar,
-genres varchar,
-imdb_id varchar,
-tmdb_id integer
+	id BIGSERIAL PRIMARY KEY,
+	movie_id integer unique, 
+	title varchar,
+	genres varchar,
+	imdb_id varchar,
+	tmdb_id integer,
+	actors varchar,
+    awards varchar,
+    country varchar,
+    director varchar,
+    imdb_rating decimal,
+    imdb_votes varchar,
+    language varchar,
+    metascore integer,
+    plot varchar,
+    poster_url varchar,
+    rated varchar,
+    release_date varchar,
+    runtime varchar,
+    writer varchar,
+	year integer
 );
 
 create table rating_info( 
-id BIGSERIAL PRIMARY KEY,
-movie_id integer, 
-user_id varchar,
-rating decimal, 
-date_added timestamp,
-unique(movie_id, user_id)
+	id BIGSERIAL PRIMARY KEY,
+	movie_id integer, 
+	user_id varchar,
+	rating decimal, 
+	date_added timestamp,
+	unique(movie_id, user_id)
 );
 
 
 create table tag_info(
-id BIGSERIAL PRIMARY KEY,
-user_id varchar,
-movie_id integer,
-date_added timestamp,
-tag varchar
+	id BIGSERIAL PRIMARY KEY,
+	user_id varchar,
+	movie_id integer,
+	date_added timestamp,
+	tag varchar
 );
 
 create table visitor_review_history(
-id BIGSERIAL PRIMARY KEY,
-user_id varchar,
-movie_id integer,
-action_type varchar,
-rating integer,
-date_added timestamp
+	id BIGSERIAL PRIMARY KEY,
+	user_id varchar,
+	session_id varchar,
+	movie_id integer,
+	action_type varchar,
+	rating integer,
+	date_added timestamp
 );
 
 create table user_info(
-uid bigint unique,
-user_id varchar,
-name varchar, 
-gender varchar,
-date_added timestamp
+	uid bigint unique,
+	user_id varchar,
+	name varchar, 
+	gender varchar,
+	date_added timestamp
 );
 
 create index movie_info_movie_id on movie_info(movie_id);

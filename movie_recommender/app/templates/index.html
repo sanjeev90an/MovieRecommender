@@ -3,10 +3,21 @@
 <head>
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-<title>Movie Recommender</title>
+
+<!-- 
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.2/jquery.min.js"></script>
+<script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+
+-->
 <link type="text/css" rel="stylesheet" href="static/style.css"></link>
 <script type="text/javascript" src="static/jquery-1.12.3.js"></script>
 <script type="text/javascript" src="static/main.js"></script>
+
+<title>Movie Recommender</title>
+
 </head>
 <body onload="getData();">
 
@@ -62,6 +73,7 @@
 		<div id=movieInfo class=card>
 			<h1 id="movieDetails"></h1>
 			<div id="movieGenre"></div>
+			<div id="moviePoster"></div>
 			<div id=ratingButton>
 				<input type="radio" name="rating" value="1">1 <input
 					type="radio" name="rating" value="2">2 <input type="radio"
@@ -72,9 +84,10 @@
 
 			<button id="skipButton">Skip</button>
 			<button id="checkButton">Checkout</button>
+			</div>
 		</div>
 		<div style="margin: 0 auto; width: 100px; padding-bottom: 20px;">
-			<fb:login-button scope="public_profile,email"
+			<fb:login-button autologoutlink="true" scope="public_profile,email"
 				onlogin="checkLoginState();">
 			</fb:login-button>
 			<div id="status"></div>
@@ -90,7 +103,8 @@
 		</div>
 		<div id=leftColumn>
 			<div id=visitorRatings class=card>
-				<h1>Visitor Ratings</h1>
+				<h1>My Ratings</h1>
+				<button id="clearRatings">Cle</button>
 			</div>
 		</div>
 	</div>

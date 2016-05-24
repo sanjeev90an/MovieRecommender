@@ -16,8 +16,26 @@ function getUserId() {
 	if (loggedInUserInfo) {
 		return loggedInUserInfo['email'];
 	} else {
-		return 'anon';
+		// check if session exists for the user otherwise create new session and
+		// store in cookie
+		var sessionId = getKeyValueFromCookie('sessionId');
+		if (!sessionId) {
+			sessionId = getUId();
+			insertInCookie('sessionId', sessionId);
+		}
+		return sessionId;
 	}
+}
+
+function getUId() {
+	var d = new Date().getTime();
+	var uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,
+			function(c) {
+				var r = (d + Math.random() * 16) % 16 | 0;
+				d = Math.floor(d / 16);
+				return (c == 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+			});
+	return uuid;
 }
 
 /* Called when a user submits rating for a movie on website. */
@@ -98,7 +116,9 @@ function getNextMovie() {
 
 /* Updates ui components with fetched movie data. */
 function renderMovieInfo(movieData) {
+	$('input[name=rating]').attr('checked', false);
 	$("#movieDetails").html(movieData['title'])
+	$("#moviePoster").html('<img src="' + movieData['poster_url'] + '" />');
 	$("#movieGenre").html(movieData['genres'])
 }
 
@@ -235,18 +255,24 @@ function addUserIfNotPresent(userInfo) {
 /* Returns the movies reviewed by anonymous user which are saved in the cookies. */
 function getReviewedMoviesFromCookie() {
 	var cookies = document.cookie.split(';');
-	var reviews;
-	for (key in cookies) {
-		if (cookies[key].trim().indexOf('reviewedMovies') == 0) {
-			reviews = cookies[key].split('=')[1]
-			break;
-		}
-	}
+	var reviews = getKeyValueFromCookie('reviewedMovies');
 	if (reviews) {
 		return JSON.parse(reviews);
 	} else {
 		return [];
 	}
+}
+
+function getKeyValueFromCookie(keyName) {
+	var cookies = document.cookie.split(';');
+	var keyValue;
+	for (key in cookies) {
+		if (cookies[key].trim().indexOf(keyName) == 0) {
+			keyValue = cookies[key].split('=')[1]
+			break;
+		}
+	}
+	return keyValue;
 }
 
 /*
@@ -261,7 +287,11 @@ function saveMovieReviewInCookie(movieId, rating, actionType) {
 		'actionType' : actionType
 	}
 	reviews.push(data);
-	document.cookie = 'reviewedMovies=' + JSON.stringify(reviews);
+	insertInCookie('reviewedMovies', JSON.stringify(reviews))
+}
+
+function insertInCookie(key, value) {
+	document.cookie = key + '=' + value;
 }
 
 /* Fetches recommended movies for a user from server. */

@@ -3,8 +3,8 @@ from flask.globals import request
 from flask.json import jsonify
 from flask.templating import render_template
 import json
+from app_controller import get_app_controller
 
-from movie_recommender.app.app_controller import get_app_controller
 
 """
 The REST APIs are defined in this file.
@@ -61,6 +61,24 @@ def get_all_visitor_ratings():
     movie_id = request.args.get('movieId').encode('utf-8')
     all_visitor_ratings = app_controller.get_all_visitor_ratings(movie_id)  # 5222
     return json.dumps(all_visitor_ratings), 200, {'ContentType':'application/json'}
+
+@app.route('/getRatingsForUser', methods=['GET'])
+def get_all_ratings_for_user():
+    user_id = request.args.get('userId').encode('utf-8')
+    is_system_user = request.args.get('systemUser').encode('utf-8')
+    all_ratings = app_controller.get_all_ratings_for_user(user_id, is_system_user)
+    
+@app.route('/getRatingsForSession', methods=['GET'])    
+def get_all_ratings_for_session():
+    session_id = request.args.get('sessionId').encode('utf-8')
+    all_ratings = app_controller.get_all_ratings_for_session(session_id)
+    
+
+@app.route('/clearAllRatings', methods=['POST'])
+def clear_all_ratings():
+    user_id = request.args.get('userId').encode('utf-8')
+    app_controller.clear_all_ratings(user_id)
+    return ok_response()
 
 """
  Returns the ratings of a movie from MovieLens dataset.
