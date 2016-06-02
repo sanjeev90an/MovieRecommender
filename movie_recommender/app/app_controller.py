@@ -32,9 +32,9 @@ class AppController:
     def clear_all_ratings(self, user_id):
         self.db_manager.delete_batch('visitor_review_history', (user_id), 'user_id')
         
-    def get_all_ratings_for_user(self, user_id, is_system_user):
+    def get_all_ratings_for_user(self, user_id, is_system_user=False):
         all_ratings = []
-        if is_system_user:
+        if is_system_user in ('True', 'true'):
             all_ratings = self.db_manager.get_all_rows('rating_info', 'user_id=\'' + user_id + '\'', 100)
         else:
             all_ratings = self.db_manager.get_all_rows('visitor_review_history', 'user_id=\'' + user_id + '\'', 100)

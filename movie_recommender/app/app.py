@@ -60,18 +60,20 @@ def checkout_movie():
 def get_all_visitor_ratings():
     movie_id = request.args.get('movieId').encode('utf-8')
     all_visitor_ratings = app_controller.get_all_visitor_ratings(movie_id)  # 5222
-    return json.dumps(all_visitor_ratings), 200, {'ContentType':'application/json'}
+    return __json_response(all_visitor_ratings)
 
 @app.route('/getRatingsForUser', methods=['GET'])
 def get_all_ratings_for_user():
     user_id = request.args.get('userId').encode('utf-8')
     is_system_user = request.args.get('systemUser').encode('utf-8')
     all_ratings = app_controller.get_all_ratings_for_user(user_id, is_system_user)
+    return __json_response(all_ratings)
     
 @app.route('/getRatingsForSession', methods=['GET'])    
 def get_all_ratings_for_session():
     session_id = request.args.get('sessionId').encode('utf-8')
     all_ratings = app_controller.get_all_ratings_for_session(session_id)
+    return __json_response(all_ratings)
     
 
 @app.route('/clearAllRatings', methods=['POST'])
@@ -87,7 +89,7 @@ def clear_all_ratings():
 def get_all_old_ratings():
     movie_id = request.args.get('movieId').encode('utf-8')
     all_old_ratings = app_controller.get_all_old_ratings(movie_id)  # 2471
-    return json.dumps(all_old_ratings), 200, {'ContentType':'application/json'}
+    return __json_response(all_old_ratings)
 
 """
     Adds a user to system. This is called when a new user logs in with facebook.
@@ -109,11 +111,15 @@ def add_user():
 def get_recommendations():
     user_id = request.args.get('userId').encode('utf-8')
     recommended_movies = app_controller.get_recommendations(user_id)
-    return json.dumps(recommended_movies), 200, {'ContentType':'application/json'}
+    return __json_response(recommended_movies)
+
+
+def __json_response(obj):
+    return json.dumps(obj), 200, {'ContentType':'application/json'}
 
 @app.route('/')
 def show_home_page():
-    return render_template('index.html')
+    return render_template('index1.html')
 
 def ok_response():
     return json.dumps({'success':True}), 200, {'ContentType':'application/json'}

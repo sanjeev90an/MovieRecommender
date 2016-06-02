@@ -2,28 +2,47 @@
 
 var currentMovieInfo; /* Details about the movie being displayed on the page. */
 var loggedInUserInfo; /* Details about the logged user, null otherwise. */
-
+var sessionId;
 /* Called on page load to fetch movie info, ratings and recommendations. */
 function getData() {
 	$('#submitButton').on('click', submitRating)
 	$('#checkButton').on('click', checkoutMovie)
 	$('#skipButton').on('click', skipMovie)
+	createSession();
+	initFBConnect();
+}
+
+function fetchData() {
 	getNextMovie();
 }
 
-// check if user is logged in
+/* Creates a session id for visitor if none exists */
+function createSession() {
+	var sessionId = getKeyValueFromCookie('sessionId');
+	if (!sessionId) {
+		sessionId = getUId();
+		insertInCookie('sessionId', sessionId);
+	}
+}
+
+// returns the user id if visitor is logged in
 function getUserId() {
+	var userId;
 	if (loggedInUserInfo) {
-		return loggedInUserInfo['email'];
+		userId = loggedInUserInfo['email'];
+	}
+	return userId;
+}
+
+function getSessionId() {
+	return sessionId;
+}
+
+function isUserLoggedIn() {
+	if (loggedInUserInfo) {
+		return true;
 	} else {
-		// check if session exists for the user otherwise create new session and
-		// store in cookie
-		var sessionId = getKeyValueFromCookie('sessionId');
-		if (!sessionId) {
-			sessionId = getUId();
-			insertInCookie('sessionId', sessionId);
-		}
-		return sessionId;
+		return false;
 	}
 }
 
@@ -102,7 +121,7 @@ function getNextMovie() {
 		currentMovieInfo = response;
 		renderMovieInfo(response);
 		getOldRatings(response);
-		getVisitorRatings(response);
+		getMyRatings(response);
 		getRecommendations();
 	}
 	failureHandler = emptyHandler
@@ -117,9 +136,15 @@ function getNextMovie() {
 /* Updates ui components with fetched movie data. */
 function renderMovieInfo(movieData) {
 	$('input[name=rating]').attr('checked', false);
-	$("#movieDetails").html(movieData['title'])
-	$("#moviePoster").html('<img src="' + movieData['poster_url'] + '" />');
+	$("#movieTitle").html(movieData['title'])
+	$("#moviePoster").attr('src', movieData['poster_url']);
 	$("#movieGenre").html(movieData['genres'])
+	$("#movieActors").html(movieData['actors'])
+	$("#movieDirector").html(movieData['director'])
+	$("#moviePlot").html(movieData['plot'])
+	$("#imdbRating").html(movieData['imdb_rating'])
+	$("#imdbVotes").html(movieData['imdb_votes'])
+
 }
 
 /* Fetches ratings from MovieLens dataset by calling API. */
@@ -176,10 +201,42 @@ function getVisitorRatings(movieData) {
 	})
 }
 
-/* Renders visitor ratings on page. */
+/* Fetches all ratings for visiting user. */
+function getMyRatings(movieData) {
+	var data;
+	if (isUserLoggedIn()) {
+		url = 'getRatingsForUser'
+		data = {
+			userId : getUserId(),
+			systemUser : false
+		}
+	} else {
+		url = 'getRatingsForSession'
+		data = {
+			sessionId : getSessionId()
+		}
+	}
+	successHandler = function(response) {
+		renderVisitorRatings(JSON.parse(response));
+	}
+	failureHandler = emptyHandler
+	$.ajax({
+		url : url,
+		type : "GET",
+		data : data,
+		success : successHandler,
+		error : failureHandler
+	})
+}
+
+/* Renders visiting user's ratings on page. */
 function renderVisitorRatings(visitorRatings) {
-	$("#visitorRatings").html("");
-	$("#visitorRatings").append("<h1>Visitor Ratings</h1>")
+	$('#myRatings').html('')
+	$('#myRatings').append('<h2>My Ratings</h2>')
+	$('#myRatings')
+			.append(
+					'<div class="text-right"><button id="clearRatingButton" class="btn btn-success">'
+							+ 'ClearRatings</button></div>')
 	if (visitorRatings.length > 0) {
 		for ( var key in visitorRatings) {
 			var rating = visitorRatings[key]['rating'];
@@ -189,50 +246,19 @@ function renderVisitorRatings(visitorRatings) {
 			} else {
 				action = visitorRatings[key]['action_type'];
 			}
-			$("#visitorRatings").append(
-					"<div class=smallcard>" + action + " by "
-							+ visitorRatings[key]['user_id'] + " at "
-							+ visitorRatings[key]['date_added'] + "</div>")
+			$('#myRatings').append('<hr>')
+			$("#myRatings").append(
+					"<div class=row><div class=col-md-12><div><strong>"
+							+ action + "</strong> by "
+							+ visitorRatings[key]['user_id']
+							+ "<span class=pull-right>"
+							+ visitorRatings[key]['date_added']
+							+ "</span></div></div></div>")
 		}
 	} else {
-		$("#visitorRatings").append(
-				"<div class=smallcard> No ratings yet</div>");
+		$('#myRatings').append('<hr>')
+		$("#myRatings").append("<div class=text-warning> No ratings yet</div>");
 	}
-}
-
-/*
- * Called when a user logs in using facebook or a logged in user visits the page
- * again. A new user is created on server if the user logs in for first time.
- * All reviewed, skipped movies of the user are fetched from cookies and saved
- * on the server. Cookies are flushed after saving on server.
- */
-function handleUserLogin(userInfo) {
-	loggedInUserInfo = userInfo;
-	document.getElementById('status').innerHTML = 'Logged in as '
-			+ userInfo['name'];
-	addUserIfNotPresent(userInfo);
-	allReviews = getReviewedMoviesFromCookie();
-	for ( var key in allReviews) {
-		var review = allReviews[key];
-		var rating = review['rating'];
-		var movieId = review['movieId'];
-		switch (allReviews[key]['actionType']) {
-		case 'skip':
-			saveUserAction("skipMovie", movieId, rating, 'skip',
-					emptySuccessHandler);
-		case 'checkout':
-			saveUserAction("checkoutMovie", movieId, rating, 'checkout',
-					emptySuccessHandler);
-		case 'review':
-			saveUserAction("saveMovieRating", movieId, rating, 'review',
-					emptySuccessHandler);
-		}
-	}
-	document.cookie = 'reviewedMovies=[]';
-	console.log(allReviews);
-	getRecommendations(); // if user login event is received after execution
-	// of loadData, the recommendations will not be
-	// fetched.
 }
 
 /* Adds a user on server by calling the api. */
@@ -290,6 +316,10 @@ function saveMovieReviewInCookie(movieId, rating, actionType) {
 	insertInCookie('reviewedMovies', JSON.stringify(reviews))
 }
 
+function removeKeyFromCookie(key) {
+	insertInCookie(key, '');
+}
+
 function insertInCookie(key, value) {
 	document.cookie = key + '=' + value;
 }
@@ -316,16 +346,23 @@ function getRecommendations() {
 }
 /* Updates the movie recommendations on the page. */
 function renderRecommendations(recommendedMovies) {
-	$("#recommendations").html("");
-	$("#recommendations").append("<h1>Recommendations</h1>")
+	$("#svdRecommendations").html('')
+	$("#svdRecommendations").append("<h2>Recommendations(SVD)</h2>")
 	if (recommendedMovies.length > 0) {
+		$('#svdRecommendations').append('<hr>')
 		for ( var key in recommendedMovies) {
-			$("#recommendations").append(
-					"<div class=smallcard>" + recommendedMovies[key]['title']
-							+ "</div>")
+			$("#svdRecommendations")
+					.append(
+							'<div class="row"><div class="col-md-12">'
+									+ '<img class="img-rounded" width="70" height="100" src="'
+									+ recommendedMovies[key]['poster_url']
+									+ '" alt=""><strong>'
+									+ recommendedMovies[key]['title']
+									+ "</strong></div</div>")
 		}
 	} else {
-		$("#recommendations").append(
-				"<div class=smallcard>No recommendations yet</div>");
+		$('#svdRecommendations').append('<hr>')
+		$("#svdRecommendations").append(
+				"<div class=text-warning>No recommendations yet</div>");
 	}
 }

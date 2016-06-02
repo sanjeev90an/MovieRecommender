@@ -39,3 +39,44 @@
     width:49%;
     vertical-align:top;
 }
+
+body {
+    padding-top: 10px;
+}
+
+
+.ratings {
+    padding-right: 10px;
+    padding-left: 10px;
+    color: #d17581;
+}
+
+.thumbnail {
+    padding: 0;
+}
+
+.thumbnail h1 {
+    text-align:center;
+}
+
+.thumbnail .caption-full {
+    padding: 9px;
+    color: #333;
+}
+
+footer {
+    margin: 50px 0;
+}
+
+.half {
+    position:relative;
+}
+half:after {
+    content:'';
+    position:absolute;
+    z-index:1;
+    background:white;
+    width: 50%;
+    height: 100%;
+    left: 47%;
+}
