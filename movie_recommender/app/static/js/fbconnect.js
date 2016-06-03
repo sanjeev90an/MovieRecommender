@@ -13,7 +13,7 @@ function statusChangeCallback(response) {
 		document.getElementById('status').innerHTML = 'Please log '
 				+ 'into Facebook.';
 	}
-//	FB.Event.subscribe('auth.logout', handleUserLogout);
+	FB.Event.subscribe('auth.logout', handleUserLogout);
 }
 
 function checkLoginState() {
@@ -34,7 +34,6 @@ function initFBConnect() {
 			statusChangeCallback(response)
 		});
 	};
-
 
 	(function(d, s, id) {
 		var js, fjs = d.getElementsByTagName(s)[0];
@@ -79,6 +78,7 @@ function handleUserLogin(userInfo) {
 					emptySuccessHandler);
 		}
 	}
+	clearRatingsForSession(getSessionId());
 	document.cookie = 'reviewedMovies=[]';
 	console.log(allReviews);
 	getRecommendations(); // if user login event is received after execution
@@ -93,5 +93,5 @@ function handleUserLogin(userInfo) {
  */
 function handleUserLogout() {
 	console.log('User logged out.')
-	removeKeyFromCookie('sessionId');
+	loggedInUserInfo = '';
 }

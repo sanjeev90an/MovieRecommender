@@ -2,12 +2,13 @@
 
 var currentMovieInfo; /* Details about the movie being displayed on the page. */
 var loggedInUserInfo; /* Details about the logged user, null otherwise. */
-var sessionId;
+var SESSION_ID;
 /* Called on page load to fetch movie info, ratings and recommendations. */
 function getData() {
 	$('#submitButton').on('click', submitRating)
 	$('#checkButton').on('click', checkoutMovie)
 	$('#skipButton').on('click', skipMovie)
+	$('#clearRatingButton').on('click', clearCurrentUserRatings)
 	createSession();
 	initFBConnect();
 }
@@ -20,8 +21,8 @@ function fetchData() {
 function createSession() {
 	var sessionId = getKeyValueFromCookie('sessionId');
 	if (!sessionId) {
-		sessionId = getUId();
-		insertInCookie('sessionId', sessionId);
+		SESSION_ID = getUId();
+		insertInCookie('sessionId', SESSION_ID);
 	}
 }
 
@@ -35,7 +36,7 @@ function getUserId() {
 }
 
 function getSessionId() {
-	return sessionId;
+	return SESSION_ID;
 }
 
 function isUserLoggedIn() {
@@ -121,7 +122,7 @@ function getNextMovie() {
 		currentMovieInfo = response;
 		renderMovieInfo(response);
 		getOldRatings(response);
-		getMyRatings(response);
+		getMyRatings();
 		getRecommendations();
 	}
 	failureHandler = emptyHandler
@@ -202,7 +203,7 @@ function getVisitorRatings(movieData) {
 }
 
 /* Fetches all ratings for visiting user. */
-function getMyRatings(movieData) {
+function getMyRatings() {
 	var data;
 	if (isUserLoggedIn()) {
 		url = 'getRatingsForUser'
@@ -232,11 +233,6 @@ function getMyRatings(movieData) {
 /* Renders visiting user's ratings on page. */
 function renderVisitorRatings(visitorRatings) {
 	$('#myRatings').html('')
-	$('#myRatings').append('<h2>My Ratings</h2>')
-	$('#myRatings')
-			.append(
-					'<div class="text-right"><button id="clearRatingButton" class="btn btn-success">'
-							+ 'ClearRatings</button></div>')
 	if (visitorRatings.length > 0) {
 		for ( var key in visitorRatings) {
 			var rating = visitorRatings[key]['rating'];
@@ -365,4 +361,50 @@ function renderRecommendations(recommendedMovies) {
 		$("#svdRecommendations").append(
 				"<div class=text-warning>No recommendations yet</div>");
 	}
+}
+
+function clearCurrentUserRatings() {
+	if (isUserLoggedIn()) {
+		clearRatingsForSession(getUserId())
+	} else {
+		clearRatingsForSession(getSessionId())
+	}
+	failureHandler = emptyHandler
+	$.ajax({
+		url : url,
+		type : "POST",
+		data : data,
+		success : successHandler,
+		error : failureHandler
+	})
+}
+
+function clearRatingsForSession(sessionId) {
+	successHandler = function(response) {
+		getMyRatings();
+	}
+	$.ajax({
+		url : 'clearRatingsForSession',
+		type : "POST",
+		data : {
+			sessionId : sessionId
+		},
+		success : successHandler,
+		error : emptyHandler
+	})
+}
+
+function clearRatingsForSession(userId) {
+	successHandler = function(response) {
+		getMyRatings();
+	}
+	$.ajax({
+		url : 'clearRatingsForUser',
+		type : "POST",
+		data : {
+			userId : userId
+		},
+		success : successHandler,
+		error : emptyHandler
+	})
 }

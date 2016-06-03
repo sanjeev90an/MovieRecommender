@@ -49,7 +49,7 @@ class DatabaseManager:
     Deletes all rows from table_name with uids. uids is a tuple.
     """
     def delete_batch(self, table_name , uids, uid_column_name='id'):
-        query = "DELETE from {} WHERE id in {}".format(table_name, str(uids))
+        query = "DELETE from {} WHERE {} in {}".format(table_name, uid_column_name, str(uids))
         self.__execute_query(query)
     
     """

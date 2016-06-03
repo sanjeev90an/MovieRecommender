@@ -76,10 +76,16 @@ def get_all_ratings_for_session():
     return __json_response(all_ratings)
     
 
-@app.route('/clearAllRatings', methods=['POST'])
-def clear_all_ratings():
-    user_id = request.args.get('userId').encode('utf-8')
-    app_controller.clear_all_ratings(user_id)
+@app.route('/clearRatingsForUser', methods=['POST'])
+def clear_all_ratings_for_user():
+    user_id = request.form['userId'].encode('utf-8')
+    app_controller.clear_all_ratings_for_user(user_id)
+    return ok_response()
+
+@app.route('/clearRatingsForSession', methods=['POST'])
+def clear_all_ratings_for_session():
+    session_id = request.form['sessionId'].encode('utf-8')
+    app_controller.clear_all_ratings_for_session(session_id)
     return ok_response()
 
 """
@@ -119,7 +125,7 @@ def __json_response(obj):
 
 @app.route('/')
 def show_home_page():
-    return render_template('index1.html')
+    return render_template('index.html')
 
 def ok_response():
     return json.dumps({'success':True}), 200, {'ContentType':'application/json'}

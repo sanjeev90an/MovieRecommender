@@ -29,8 +29,11 @@ class AppController:
     def get_all_visitor_ratings(self, movie_id):
         return self.db_manager.get_all_rows(table_name='visitor_review_history', limit=20)
     
-    def clear_all_ratings(self, user_id):
-        self.db_manager.delete_batch('visitor_review_history', (user_id), 'user_id')
+    def clear_all_ratings_for_user(self, user_id):
+        self.db_manager.delete_batch('visitor_review_history', (user_id, ''), 'user_id')
+    
+    def clear_all_ratings_for_session(self, session_id):
+        self.db_manager.delete_batch('visitor_review_history', (session_id, ''), 'session_id')
         
     def get_all_ratings_for_user(self, user_id, is_system_user=False):
         all_ratings = []
