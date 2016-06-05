@@ -14,6 +14,7 @@ function statusChangeCallback(response) {
 				+ 'into Facebook.';
 	}
 	FB.Event.subscribe('auth.logout', handleUserLogout);
+	fetchData();
 }
 
 function checkLoginState() {
@@ -84,7 +85,6 @@ function handleUserLogin(userInfo) {
 	// if user login event is received after execution
 	// of loadData, the recommendations will not be
 	// fetched.
-	fetchData();
 }
 
 /*

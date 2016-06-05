@@ -29,8 +29,18 @@ def get_next_movie():
 def save_movie_rating():
     movie_id = request.form['movieId'].encode('utf-8')
     rating = request.form['rating'].encode('utf-8')
-    user_id = request.form['userId'].encode('utf-8')
-    app_controller.capture_user_action(movie_id, user_id, 'review', rating)
+    user_id = request.form['userId']
+    if user_id:
+        user_id = user_id.encode('utf-8')
+    else:
+        user_id = ''
+    session_id = request.form['sessionId']
+    if session_id:
+        session_id = session_id.encode('utf-8')
+    else:
+        session_id = ''
+    
+    app_controller.capture_user_action(movie_id, user_id, session_id, 'review', rating)
     return ok_response() 
 
 """
@@ -39,8 +49,17 @@ def save_movie_rating():
 @app.route('/skipMovie', methods=['POST'])
 def skip_movie():
     movie_id = request.form['movieId'].encode('utf-8')
-    user_id = request.form['userId'].encode('utf-8')
-    app_controller.capture_user_action(movie_id, user_id, 'skip', -1)
+    user_id = request.form['userId']
+    if user_id:
+        user_id = user_id.encode('utf-8')
+    else:
+        user_id = ''
+    session_id = request.form['sessionId']
+    if session_id:
+        session_id = session_id.encode('utf-8')
+    else:
+        session_id = ''
+    app_controller.capture_user_action(movie_id, user_id, session_id, 'skip', -1)
     return ok_response()
 
 """
@@ -49,8 +68,17 @@ def skip_movie():
 @app.route('/checkoutMovie', methods=['POST'])
 def checkout_movie():
     movie_id = request.form['movieId'].encode('utf-8')
-    user_id = request.form['userId'].encode('utf-8')
-    app_controller.capture_user_action(movie_id, user_id, 'checkout', -1)
+    user_id = request.form['userId']
+    if user_id:
+        user_id = user_id.encode('utf-8')
+    else:
+        user_id = ''
+    session_id = request.form['sessionId']
+    if session_id:
+        session_id = session_id.encode('utf-8')
+    else:
+        session_id = ''
+    app_controller.capture_user_action(movie_id, user_id, session_id, 'checkout', -1)
     return ok_response()
 
 """

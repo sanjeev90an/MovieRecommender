@@ -27,9 +27,9 @@ class AppController:
         movie_data = self.db_manager.get_row('movie_info', movie_uid)
         return movie_data;
     
-    def capture_user_action(self, movie_id, user_id, action_type, rating):
+    def capture_user_action(self, movie_id, user_id, session_id, action_type, rating):
         column_headers = TABLES['visitor_review_history']
-        row = (user_id, movie_id, action_type, rating, get_current_time_str());
+        row = (user_id, session_id, movie_id, action_type, rating, get_current_time_str());
         self.db_manager.insert_batch('visitor_review_history', column_headers, [row])
 
     def get_all_visitor_ratings(self, movie_id):

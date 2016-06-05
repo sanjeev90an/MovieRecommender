@@ -16,7 +16,7 @@ TABLES = {'movie_info':('movie_id', 'title', 'genres', 'imdb_id', 'tmdb_id', 'ac
                          'plot', 'poster_url', 'rated', 'release_date', 'runtime', 'writer', 'year'),
           'rating_info':('user_id', 'movie_id', 'rating', 'date_added'),
           'tag_info':('user_id', 'movie_id', 'tag', 'date_added'),
-          'visitor_review_history':('user_id', 'movie_id', 'action_type', 'rating', 'date_added'),
+          'visitor_review_history':('user_id', 'session_id', 'movie_id', 'action_type', 'rating', 'date_added'),
           'user_info':('uid', 'user_id', 'name', 'gender', 'date_added')
           }
 

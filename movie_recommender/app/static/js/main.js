@@ -96,7 +96,8 @@ function checkoutMovie() {
  */
 function saveUserAction(url, movieId, rating, actionType, successHandler) {
 	userId = getUserId();
-	if (userId == 'anon') {
+	sessionId = getSessionId();
+	if (!isUserLoggedIn()) {
 		saveMovieReviewInCookie(movieId, rating, actionType);
 	}
 	$.ajax({
@@ -105,11 +106,12 @@ function saveUserAction(url, movieId, rating, actionType, successHandler) {
 		data : {
 			movieId : movieId,
 			userId : userId,
-			rating : rating
+			rating : rating,
+			sessionId : sessionId
 		},
 		success : successHandler,
 		error : emptyHandler
-	})
+	});
 }
 
 emptyHandler = function() {
@@ -341,7 +343,8 @@ function getRecommendations(algo) {
 	} else {
 		url = 'getRecommendationsForSession'
 		data = {
-			sessionId : getSessionId()
+			sessionId : getSessionId(),
+			algo : algo
 		};
 	}
 	$.ajax({

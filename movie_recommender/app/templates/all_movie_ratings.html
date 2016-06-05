@@ -59,7 +59,7 @@
 							<div class=col-md-12>
 								<div>
 									<strong>
-									{% if rating_info['rating']>0 %}
+									{% if rating_info['rating'] != '-1' %}
 									{{rating_info['rating']}} 
 									{% else %}
 									{{rating_info['action_type']}}
