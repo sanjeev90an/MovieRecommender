@@ -4,6 +4,7 @@ from flask.json import jsonify
 from flask.templating import render_template
 import json
 from app_controller import get_app_controller
+from movie_recommender.ml.scikit_recommender import scikit_recommender
 
 
 """
@@ -113,10 +114,19 @@ def add_user():
     Returns recommended movies for a user. It returns 10 recommended movies. This function 
     only returns recommendations if the user has rated at least 10 movies.
 """
-@app.route('/getRecommendations', methods=['GET'])
-def get_recommendations():
+@app.route('/getRecommendationsForUser', methods=['GET'])
+def get_recommendations_for_user():
     user_id = request.args.get('userId').encode('utf-8')
-    recommended_movies = app_controller.get_recommendations(user_id)
+    algo = request.args.get('algo').encode('utf-8')
+    recommended_movies = app_controller.get_recommendations_for_user(user_id, algo)
+    return __json_response(recommended_movies)
+
+
+@app.route('/getRecommendationsForSession', methods=['GET'])
+def get_recommendations_for_session():
+    session_id = request.args.get('sessionId').encode('utf-8')
+    algo = request.args.get('algo').encode('utf-8')
+    recommended_movies = app_controller.get_recommendations_for_session(session_id, algo)
     return __json_response(recommended_movies)
 
 
@@ -126,6 +136,34 @@ def __json_response(obj):
 @app.route('/')
 def show_home_page():
     return render_template('index.html')
+
+@app.route('/showMovieRatings')
+def show_movie_ratings():
+    movie_id = request.args.get('movieId').encode('utf-8')
+    system_user_ratings = app_controller.get_all_old_ratings(movie_id)
+    visitor_ratings = app_controller.get_all_visitor_ratings(movie_id)
+    movie_info = app_controller.get_movie_info(movie_id)
+    return render_template('all_movie_ratings.html', system_user_ratings=system_user_ratings,
+                           visitor_ratings=visitor_ratings, movie_info=movie_info)
+
+@app.route('/showUserInfo')
+def show_user_info():
+    user_id = request.args.get('userId')
+    is_system_user = request.args.get('systemUser')
+    session_id = request.args.get('sessionId')
+    user_ratings = []
+    if session_id:
+        user_ratings = app_controller.get_all_ratings_for_session(session_id.encode('utf-8'))
+    else:
+        user_ratings = app_controller.get_all_ratings_for_user(user_id.encode('utf-8'), is_system_user.encode('utf-8'))
+    user_info = {'user_id':user_id, 'session_id':session_id}
+    return render_template('user_info.html', user_ratings=user_ratings, user_info=user_info)
+
+@app.route('/compareRecommendationAlgos')
+def compare_recommendation_algos():
+    recommendations, user_id, nimfa_rmse, scikit_rmse = app_controller.get_recommendations_for_system_user();
+    return render_template('compare_recommendation_algos.html', recommendations=recommendations, user_id=user_id,
+                           nimfa_rmse=nimfa_rmse, scikit_rmse=scikit_rmse)
 
 def ok_response():
     return json.dumps({'success':True}), 200, {'ContentType':'application/json'}

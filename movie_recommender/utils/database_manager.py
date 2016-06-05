@@ -25,8 +25,9 @@ class DatabaseManager:
             self.logger.error("Error occurred while executing query {}".format(query))
         except IntegrityError:
             self.logger.error("Query failed. Duplicate row for query {}".format(query))
-        connection.commit()
-        self.connection_pool.putconn(connection)
+        finally:
+            connection.commit()
+            self.connection_pool.putconn(connection)
 
     """
     Inserts multiple rows in table_name. column_headers contain tuple of table headers.
@@ -86,7 +87,7 @@ class DatabaseManager:
     Returns all rows from table_name satisfying where_clause. The number of returned rows are limited to 
     limit.
     """
-    def get_all_rows(self, table_name, where_clause='1=1', limit=20):
+    def get_all_rows(self, table_name, where_clause='1=1', limit=20, order_by=None):
         query = "Select * from {} where {} limit {}".format(table_name, where_clause, limit)
         connection = self.connection_pool.getconn()
         cursor = connection.cursor()

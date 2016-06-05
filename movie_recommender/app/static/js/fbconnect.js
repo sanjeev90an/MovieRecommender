@@ -81,7 +81,7 @@ function handleUserLogin(userInfo) {
 	clearRatingsForSession(getSessionId());
 	document.cookie = 'reviewedMovies=[]';
 	console.log(allReviews);
-	getRecommendations(); // if user login event is received after execution
+	// if user login event is received after execution
 	// of loadData, the recommendations will not be
 	// fetched.
 	fetchData();

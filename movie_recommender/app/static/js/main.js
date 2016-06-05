@@ -23,6 +23,8 @@ function createSession() {
 	if (!sessionId) {
 		SESSION_ID = getUId();
 		insertInCookie('sessionId', SESSION_ID);
+	} else {
+		SESSION_ID = sessionId;
 	}
 }
 
@@ -123,7 +125,8 @@ function getNextMovie() {
 		renderMovieInfo(response);
 		getOldRatings(response);
 		getMyRatings();
-		getRecommendations();
+		getRecommendations('scikit');
+		getRecommendations('nimfa');
 	}
 	failureHandler = emptyHandler
 	$.ajax({
@@ -137,7 +140,9 @@ function getNextMovie() {
 /* Updates ui components with fetched movie data. */
 function renderMovieInfo(movieData) {
 	$('input[name=rating]').attr('checked', false);
-	$("#movieTitle").html(movieData['title'])
+	$("#movieTitle").append(
+			'<a href=showMovieRatings?movieId=' + movieData['movie_id'] + '>'
+					+ movieData['title'] + '</a>')
 	$("#moviePoster").attr('src', movieData['poster_url']);
 	$("#movieGenre").html(movieData['genres'])
 	$("#movieActors").html(movieData['actors'])
@@ -321,33 +326,41 @@ function insertInCookie(key, value) {
 }
 
 /* Fetches recommended movies for a user from server. */
-function getRecommendations() {
-	console.log("Going to fetch recommendations")
-	var userId = getUserId();
-	var url = "getRecommendations"
+function getRecommendations(algo) {
+	console.log("Going to fetch recommendations for " + algo)
+	var url, data;
 	var successHandler = successHandler = function(response) {
-		renderRecommendations(JSON.parse(response));
+		renderRecommendations(algo, JSON.parse(response));
 	}
-	if (userId != 'anon') {
-		$.ajax({
-			url : url,
-			type : "GET",
-			data : {
-				userId : userId,
-			},
-			success : successHandler,
-			error : emptyHandler
-		})
+	if (isUserLoggedIn()) {
+		url = 'getRecommendationsForUser';
+		data = {
+			userId : getUserId(),
+			algo : algo
+		};
+	} else {
+		url = 'getRecommendationsForSession'
+		data = {
+			sessionId : getSessionId()
+		};
 	}
+	$.ajax({
+		url : url,
+		type : "GET",
+		data : data,
+		success : successHandler,
+		error : emptyHandler
+	})
 }
 /* Updates the movie recommendations on the page. */
-function renderRecommendations(recommendedMovies) {
-	$("#svdRecommendations").html('')
-	$("#svdRecommendations").append("<h2>Recommendations(SVD)</h2>")
+function renderRecommendations(algo, recommendedMovies) {
+	var divId = '#' + algo + 'Recommendations'; // #scikitRecommendations or
+	// #nimfaRecommendations
+	$(divId).html('')
 	if (recommendedMovies.length > 0) {
-		$('#svdRecommendations').append('<hr>')
+		$(divId).append('<hr>')
 		for ( var key in recommendedMovies) {
-			$("#svdRecommendations")
+			$(divId)
 					.append(
 							'<div class="row"><div class="col-md-12">'
 									+ '<img class="img-rounded" width="70" height="100" src="'
@@ -357,15 +370,14 @@ function renderRecommendations(recommendedMovies) {
 									+ "</strong></div</div>")
 		}
 	} else {
-		$('#svdRecommendations').append('<hr>')
-		$("#svdRecommendations").append(
-				"<div class=text-warning>No recommendations yet</div>");
+		$(divId).append('<hr>')
+		$(divId).append("<div class=text-warning>No recommendations yet</div>");
 	}
 }
 
 function clearCurrentUserRatings() {
 	if (isUserLoggedIn()) {
-		clearRatingsForSession(getUserId())
+		clearRatingsForUser(getUserId())
 	} else {
 		clearRatingsForSession(getSessionId())
 	}
@@ -394,7 +406,7 @@ function clearRatingsForSession(sessionId) {
 	})
 }
 
-function clearRatingsForSession(userId) {
+function clearRatingsForUser(userId) {
 	successHandler = function(response) {
 		getMyRatings();
 	}
