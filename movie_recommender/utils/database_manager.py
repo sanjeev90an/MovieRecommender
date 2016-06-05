@@ -88,7 +88,10 @@ class DatabaseManager:
     limit.
     """
     def get_all_rows(self, table_name, where_clause='1=1', limit=20, order_by=None):
-        query = "Select * from {} where {} limit {}".format(table_name, where_clause, limit)
+        query = "Select * from {} where {} ".format(table_name, where_clause)
+        if order_by:
+            query = '{} order by {} desc'.format(query, order_by)
+        query = '{} limit {}'.format(query, limit)
         connection = self.connection_pool.getconn()
         cursor = connection.cursor()
         cursor.execute(query)

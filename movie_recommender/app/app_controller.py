@@ -33,7 +33,7 @@ class AppController:
         self.db_manager.insert_batch('visitor_review_history', column_headers, [row])
 
     def get_all_visitor_ratings(self, movie_id):
-        return self.db_manager.get_all_rows(table_name='visitor_review_history', limit=100)
+        return self.db_manager.get_all_rows(table_name='visitor_review_history', limit=100, order_by='date_added')
     
     def clear_all_ratings_for_user(self, user_id):
         self.db_manager.delete_batch('visitor_review_history', (user_id, ''), 'user_id')
@@ -44,23 +44,23 @@ class AppController:
     def get_all_ratings_for_user(self, user_id, is_system_user=False):
         all_ratings = []
         if is_system_user in ('True', 'true'):
-            all_ratings = self.db_manager.get_all_rows('rating_info', 'user_id=\'' + user_id + '\'', 100)
+            all_ratings = self.db_manager.get_all_rows('rating_info', 'user_id=\'' + user_id + '\'', 100, order_by='date_added')
         else:
-            all_ratings = self.db_manager.get_all_rows('visitor_review_history', 'user_id=\'' + user_id + '\'', 100)
+            all_ratings = self.db_manager.get_all_rows('visitor_review_history', 'user_id=\'' + user_id + '\'', 100, order_by='date_added')
         for rating in all_ratings:
             movie_info = self.movie_info_map[rating['movie_id']]
             rating['title'] = movie_info['title']
         return all_ratings
     
     def get_all_ratings_for_session(self, session_id):
-        all_ratings = self.db_manager.get_all_rows('visitor_review_history', 'session_id=\'' + session_id + '\'', 100)
+        all_ratings = self.db_manager.get_all_rows('visitor_review_history', 'session_id=\'' + session_id + '\'', 100, order_by='date_added')
         for rating in all_ratings:
             movie_info = self.movie_info_map[rating['movie_id']]
             rating['title'] = movie_info['title']
         return all_ratings
     
     def get_all_old_ratings(self, movie_id):
-        all_ratings = self.db_manager.get_all_rows('rating_info', 'movie_id=\'' + movie_id + '\'', 100)
+        all_ratings = self.db_manager.get_all_rows('rating_info', 'movie_id=\'' + movie_id + '\'', 100, order_by='date_added')
         for rating in all_ratings:
             movie_info = self.movie_info_map[rating['movie_id']]
             rating['title'] = movie_info['title']
@@ -100,15 +100,20 @@ class AppController:
     
     def get_recommendations_for_system_user(self):
         uid = self.all_system_users[randint(0, len(self.all_system_users) - 1)]
-        scikit_recommendations = dict(self.scikit_recommender.get_recommended_ratings_for_systemuser(uid))
-        nimfa_recommendations = dict(self.nimfa_recommender.get_recommended_ratings_for_systemuser(uid))
+        scikit_recommendations = self.scikit_recommender.get_recommended_ratings_for_systemuser(uid)
+        nimfa_recommendations = self.nimfa_recommender.get_recommended_ratings_for_systemuser(uid)
         all_rating_infos = self.db_manager.get_all_rows('rating_info', 'user_id = \'{}\''.format(uid), limit=10000)
         recommendations = []
-        for rating_info in all_rating_infos:
-            movie_id = int(rating_info['movie_id'])
+        all_rating_infos.sort(key=lambda x:x['rating'], reverse=True)
+        movie_ids = {int(rating_info['movie_id']) for rating_info in all_rating_infos}
+        
+        scikit_recommendations = [recommendation[0] for recommendation in scikit_recommendations if recommendation[0] in movie_ids]
+        nimfa_recommendations = [recommendation[0] for recommendation in nimfa_recommendations if recommendation[0] in movie_ids]
+        for i, rating_info in enumerate(all_rating_infos):
+            movie_id = rating_info['movie_id']
             recommendation = {'title':self.movie_info_map[str(movie_id)]['title'],
-                              'nimfa_rating':nimfa_recommendations[movie_id],
-                              'scikit_rating':scikit_recommendations[movie_id],
+                              'nimfa_rating':self.movie_info_map[str(nimfa_recommendations[i])]['title'],
+                              'scikit_rating':self.movie_info_map[str(scikit_recommendations[i])]['title'],
                               'real_rating':rating_info['rating']}
             recommendations.append(recommendation)
         return recommendations, uid, self.nimfa_recommender.rmse(), self.scikit_recommender.rmse()

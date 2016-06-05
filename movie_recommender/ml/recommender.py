@@ -40,9 +40,9 @@ class AbstractRecommender(object):
         self.data_matrix = data_matrix
         
     def rmse(self):
-        self.rmse = numpy.mean(numpy.square(numpy.subtract(self.data_matrix, numpy.dot(self.W, self.H))))
+        self.__rmse = numpy.mean(numpy.square(numpy.subtract(self.data_matrix, numpy.dot(self.W, self.H))))
         self.logger.info("Decomposition rmse:{}".format(self.rmse))
-        return self.rmse
+        return self.__rmse
     
     """
     It returns the predicted value of ratings for a user.
