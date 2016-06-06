@@ -201,7 +201,8 @@ function renderVisitorRatings(visitorRatings) {
 					: 'anon(' + visitorRatings[key]['session_id'] + ')';
 			$("#myRatings").append(
 					"<div class=row><div class=col-md-12><div><strong>"
-							+ action + "</strong> by " + userId
+							+ visitorRatings[key]['title'] + ' ' + action
+							+ "</strong> by " + userId
 							+ "<span class=pull-right>"
 							+ visitorRatings[key]['date_added']
 							+ "</span></div></div></div>")
