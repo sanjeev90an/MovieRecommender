@@ -63,6 +63,7 @@ function handleUserLogin(userInfo) {
 			+ userInfo['name'];
 	addUserIfNotPresent(userInfo);
 	allReviews = getReviewedMoviesFromCookie();
+	clearRatingsForSession(getSessionId());
 	for ( var key in allReviews) {
 		var review = allReviews[key];
 		var rating = review['rating'];
@@ -79,7 +80,6 @@ function handleUserLogin(userInfo) {
 					emptySuccessHandler);
 		}
 	}
-	clearRatingsForSession(getSessionId());
 	document.cookie = 'reviewedMovies=[]';
 	console.log(allReviews);
 	// if user login event is received after execution
@@ -93,5 +93,9 @@ function handleUserLogin(userInfo) {
  */
 function handleUserLogout() {
 	console.log('User logged out.')
+	removeKeyFromCookie('sessionId');
+	SESSION_ID=''
 	loggedInUserInfo = '';
+	createSession();
+	fetchData();
 }

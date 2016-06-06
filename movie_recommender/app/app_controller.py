@@ -32,8 +32,13 @@ class AppController:
         row = (user_id, session_id, movie_id, action_type, rating, get_current_time_str());
         self.db_manager.insert_batch('visitor_review_history', column_headers, [row])
 
-    def get_all_visitor_ratings(self, movie_id):
-        return self.db_manager.get_all_rows(table_name='visitor_review_history', limit=100, order_by='date_added')
+    def get_all_visitor_ratings(self, movie_id=''):
+        where_clause = '1=1'
+        if movie_id:
+            where_clause = 'movie_id=\'{}\''.format(movie_id) 
+        
+        return self.db_manager.get_all_rows(table_name='visitor_review_history', where_clause 
+                                            , limit=100, order_by='date_added')
     
     def clear_all_ratings_for_user(self, user_id):
         self.db_manager.delete_batch('visitor_review_history', (user_id, ''), 'user_id')

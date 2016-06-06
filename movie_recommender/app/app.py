@@ -165,6 +165,11 @@ def __json_response(obj):
 def show_home_page():
     return render_template('index.html')
 
+@app.route('/showAllVisitorRatings')
+def show_all_visitor_ratings():
+    visitor_ratings = app_controller.get_all_visitor_ratings()
+    return render_template('all_visitor_ratings.html', visitor_ratings=visitor_ratings)
+
 @app.route('/showMovieRatings')
 def show_movie_ratings():
     movie_id = request.args.get('movieId').encode('utf-8')
@@ -192,7 +197,8 @@ def compare_recommendation_algos():
     recommendations, user_id, nimfa_rmse, scikit_rmse = app_controller.get_recommendations_for_system_user();
     return render_template('compare_recommendation_algos.html', recommendations=recommendations, user_id=user_id,
                            nimfa_rmse=nimfa_rmse, scikit_rmse=scikit_rmse)
-
+    
+    
 def ok_response():
     return json.dumps({'success':True}), 200, {'ContentType':'application/json'}
 

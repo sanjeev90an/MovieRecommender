@@ -30,7 +30,7 @@ function createSession() {
 
 // returns the user id if visitor is logged in
 function getUserId() {
-	var userId;
+	var userId = '';
 	if (loggedInUserInfo) {
 		userId = loggedInUserInfo['email'];
 	}
@@ -121,11 +121,10 @@ emptySuccessHandler = function(response) {
 
 /* Fetches next random movie title from server. */
 function getNextMovie() {
-	url = "getNextMovie"
+	url = "getNextMovie";
 	successHandler = function(response) {
 		currentMovieInfo = response;
 		renderMovieInfo(response);
-		getOldRatings(response);
 		getMyRatings();
 		getRecommendations('scikit');
 		getRecommendations('nimfa');
@@ -142,10 +141,12 @@ function getNextMovie() {
 /* Updates ui components with fetched movie data. */
 function renderMovieInfo(movieData) {
 	$('input[name=rating]').attr('checked', false);
+	$("#movieTitle").html('');
 	$("#movieTitle").append(
 			'<a href=showMovieRatings?movieId=' + movieData['movie_id'] + '>'
 					+ movieData['title'] + '</a>')
-	$("#moviePoster").attr('src', movieData['poster_url']);
+	$("#moviePoster").attr('src',
+			'static/img/' + movieData['movie_id'] + '.jpg');
 	$("#movieGenre").html(movieData['genres'])
 	$("#movieActors").html(movieData['actors'])
 	$("#movieDirector").html(movieData['director'])
@@ -153,60 +154,6 @@ function renderMovieInfo(movieData) {
 	$("#imdbRating").html(movieData['imdb_rating'])
 	$("#imdbVotes").html(movieData['imdb_votes'])
 
-}
-
-/* Fetches ratings from MovieLens dataset by calling API. */
-function getOldRatings(movieData) {
-	movieId = movieData['movie_id'];
-	url = "getAllOldRatings"
-	successHandler = function(response) {
-		renderOldRatings(JSON.parse(response));
-	}
-	failureHandler = emptyHandler
-	$.ajax({
-		url : url,
-		type : "GET",
-		data : {
-			movieId : movieId
-		},
-		success : successHandler,
-		error : failureHandler
-	})
-}
-
-/* Renders the old ratings on page. */
-function renderOldRatings(oldRatings) {
-	$("#oldRatings").html("");
-	$("#oldRatings").append("<h1>Old ratings</h1>");
-	if (oldRatings.length > 0) {
-		for ( var key in oldRatings) {
-			$("#oldRatings").append(
-					"<div class=smallcard>" + oldRatings[key]['rating']
-							+ " by " + oldRatings[key]['user_id'] + " at "
-							+ oldRatings[key]['date_added'] + "</div>")
-		}
-	} else {
-		$("#oldRatings").append("<div class=smallcard> No ratings yet</div>");
-	}
-}
-
-/* Fetches the actions taken by website visitors from server. */
-function getVisitorRatings(movieData) {
-	movieId = movieData['movie_id'];
-	url = "getAllVisitorRatings"
-	successHandler = function(response) {
-		renderVisitorRatings(JSON.parse(response));
-	}
-	failureHandler = emptyHandler
-	$.ajax({
-		url : url,
-		type : "GET",
-		data : {
-			movieId : movieId
-		},
-		success : successHandler,
-		error : failureHandler
-	})
 }
 
 /* Fetches all ratings for visiting user. */
@@ -250,10 +197,11 @@ function renderVisitorRatings(visitorRatings) {
 				action = visitorRatings[key]['action_type'];
 			}
 			$('#myRatings').append('<hr>')
+			var userId = visitorRatings[key]['user_id'] ? visitorRatings[key]['user_id']
+					: 'anon(' + visitorRatings[key]['session_id'] + ')';
 			$("#myRatings").append(
 					"<div class=row><div class=col-md-12><div><strong>"
-							+ action + "</strong> by "
-							+ visitorRatings[key]['user_id']
+							+ action + "</strong> by " + userId
 							+ "<span class=pull-right>"
 							+ visitorRatings[key]['date_added']
 							+ "</span></div></div></div>")
@@ -384,14 +332,6 @@ function clearCurrentUserRatings() {
 	} else {
 		clearRatingsForSession(getSessionId())
 	}
-	failureHandler = emptyHandler
-	$.ajax({
-		url : url,
-		type : "POST",
-		data : data,
-		success : successHandler,
-		error : failureHandler
-	})
 }
 
 function clearRatingsForSession(sessionId) {
