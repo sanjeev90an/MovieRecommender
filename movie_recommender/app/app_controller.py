@@ -6,7 +6,6 @@ from movie_recommender.utils.date_utils import get_current_time_str
 from movie_recommender.ml.scikit_recommender import get_scikit_recommender
 from movie_recommender.ml.nimfa_recommender import get_nimfa_recommender, \
     nimfa_recommender
-from movie_recommender.utils.logging_utils import get_logger
 
 class AppController:
     """
@@ -20,38 +19,48 @@ class AppController:
         self.genres = set()
         for genre in genres:
             self.genres.update(genre.split('|'))
-        
+        self.genres = list(self.genres)
         
         self.all_movie_uids = self.db_manager.get_all_values_for_attr('movie_info', 'id')
         movie_infos = self.db_manager.get_all_rows('movie_info', '1=1', limit=10000)
-        self.top_movies = {genre:[] for genre in self.genres}
-        self.other_movies = {genre:[] for genre in self.genres}
+        self.top_movies = {}
+        self.other_movies = {}
         for movie_info in movie_infos:
             genres = movie_info['genres'].split('|')
-            movie_id = movie_info['movie_id']
-            if movie_info['imdb_rating'] > 7:
+            movie_uid = movie_info['id']
+            if float(movie_info['imdb_rating']) > 7.5:
                 for genre in genres:
-                    self.top_movies[genre].append(movie_id)
+                    if genre in self.top_movies:
+                        self.top_movies[genre].append(movie_uid)
+                    else:
+                        self.top_movies[genre] = []
             else:
                 for genre in genres:
-                    self.other_movies[genre].append(movie_id)
-                
+                    if genre in self.other_movies:
+                        self.other_movies[genre].append(movie_uid)
+                    else:
+                        self.other_movies[genre] = []
+               
         self.movie_info_map = {movie_info['movie_id']:movie_info for movie_info in movie_infos}
         self.all_system_users = self.db_manager.get_all_values_for_attr('rating_info', 'user_id')
         self.scikit_recommender = get_scikit_recommender()
         self.nimfa_recommender = get_nimfa_recommender()
-        self.logger = get_logger()
         
     def get_next_movie(self):
         # movie_uid = self.all_movie_uids[randint(0, len(self.all_movie_uids) - 1)]
-        genre = self.genres[randint(0, len(self.genres) - 1)]
         if randint(1, 100) > 80:
+            genres = self.other_movies.keys()
+            genre = genres[randint(0, len(genres) - 1)]
             movies = self.other_movies[genre]
+            print 'Other movie type, genre:{}, total movies:{}'.format(genre, len(movies))
         else:
+            genres = self.top_movies.keys()
+            genre = genres[randint(0, len(genres) - 1)]
             movies = self.top_movies[genre]
+            print 'Top movie type, genre:{}, total movies:{}'.format(genre, len(movies))
         movie_id = movies[randint(0, len(movies) - 1)]
-        movie_data = self.db_manager.get_row('movie_info', movie_id)
-        self.logger('Selected genre:{} and movie:{}'.format(genre, movie_data['title']))
+        movie_data = self.db_manager.get_row('movie_info', int(movie_id))
+        print 'selected movie:{},rating:{}'.format(movie_data['title'], movie_data['imdb_rating'])
         return movie_data;
     
     def capture_user_action(self, movie_id, user_id, session_id, action_type, rating):
