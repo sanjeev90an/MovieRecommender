@@ -4,7 +4,6 @@ from flask.json import jsonify
 from flask.templating import render_template
 import json
 from app_controller import get_app_controller
-from movie_recommender.ml.scikit_recommender import scikit_recommender
 
 
 """
@@ -19,7 +18,8 @@ app_controller = get_app_controller()
 """
 @app.route('/getNextMovie', methods=['GET'])
 def get_next_movie():
-    return jsonify(app_controller.get_next_movie())
+    session_id = request.args.get('sessionId').encode('utf-8')
+    return jsonify(app_controller.get_next_movie(session_id))
 
 
 """
@@ -203,4 +203,4 @@ def ok_response():
     return json.dumps({'success':True}), 200, {'ContentType':'application/json'}
 
 if __name__ == '__main__':
-    app.run("127.0.0.1", 9090, debug=True)
+    app.run("0.0.0.0", 9090, debug=True)

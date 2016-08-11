@@ -46,22 +46,36 @@ class AppController:
         self.scikit_recommender = get_scikit_recommender()
         self.nimfa_recommender = get_nimfa_recommender()
         
-    def get_next_movie(self):
+    def get_next_movie(self, session_id):
         # movie_uid = self.all_movie_uids[randint(0, len(self.all_movie_uids) - 1)]
-        if randint(1, 100) > 80:
-            genres = self.other_movies.keys()
-            genre = genres[randint(0, len(genres) - 1)]
-            movies = self.other_movies[genre]
-            print 'Other movie type, genre:{}, total movies:{}'.format(genre, len(movies))
-        else:
-            genres = self.top_movies.keys()
-            genre = genres[randint(0, len(genres) - 1)]
-            movies = self.top_movies[genre]
-            print 'Top movie type, genre:{}, total movies:{}'.format(genre, len(movies))
-        movie_id = movies[randint(0, len(movies) - 1)]
-        movie_data = self.db_manager.get_row('movie_info', int(movie_id))
-        print 'selected movie:{},rating:{}'.format(movie_data['title'], movie_data['imdb_rating'])
-        return movie_data;
+        retries = 2
+        viewed_movies = self.get_viewed_movies(session_id)
+        while True:
+            if randint(1, 100) > 80:
+                genres = self.other_movies.keys()
+                genre = genres[randint(0, len(genres) - 1)]
+                movies = self.other_movies[genre]
+                print 'Other movie type, genre:{}, total movies:{}'.format(genre, len(movies))
+            else:
+                genres = self.top_movies.keys()
+                genre = genres[randint(0, len(genres) - 1)]
+                movies = self.top_movies[genre]
+                print 'Top movie type, genre:{}, total movies:{}'.format(genre, len(movies))
+            movie_id = movies[randint(0, len(movies) - 1)]
+            movie_data = self.db_manager.get_row('movie_info', int(movie_id))
+            if movie_data['movie_id'] in viewed_movies and retries > 0:
+                # retry and get another movie ...
+                print 'This movie has been already shown, retrying to find a new movie'
+                retries -= 1
+                continue
+            else:
+                print 'selected movie:{},rating:{}'.format(movie_data['title'], movie_data['imdb_rating'])
+                return movie_data;
+    
+    def get_viewed_movies(self, session_id):
+        rows = self.db_manager.get_all_rows('visitor_review_history', 'session_id=\'' + session_id + '\'', limit=100)
+        viewed_movieids = [row['movie_id'] for row in rows]
+        return viewed_movieids
     
     def capture_user_action(self, movie_id, user_id, session_id, action_type, rating):
         column_headers = TABLES['visitor_review_history']

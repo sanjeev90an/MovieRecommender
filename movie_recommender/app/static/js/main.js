@@ -133,6 +133,7 @@ function getNextMovie() {
 	$.ajax({
 		url : url,
 		type : "GET",
+		data : {sessionId : getSessionId()},
 		success : successHandler,
 		error : failureHandler
 	})
@@ -316,7 +317,7 @@ function renderRecommendations(algo, recommendedMovies) {
 					.append(
 							'<div class="row"><div class="col-md-12">'
 									+ '<img class="img-rounded" width="70" height="100" src="'
-									+ recommendedMovies[key]['poster_url']
+									+ 'static/img/' + recommendedMovies[key]['movie_id'] + '.jpg'
 									+ '" alt=""><strong>'
 									+ recommendedMovies[key]['title']
 									+ "</strong></div</div>")
